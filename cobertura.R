@@ -24,7 +24,7 @@ library(tools) #file_path_sans_ext()
 
 # ---- SET WORKING DIRECTORY ---------------------------------------------------
 
-setwd("F:/misdoc/sap/conbertura muestreos")
+setwd("F:/misdoc/sap/cobertura muestreos")
 
 
 # ---- CONSTANTS ---------------------------------------------------------------
@@ -37,7 +37,7 @@ BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "TIP_MUESTREO", "MES
 
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/conbertura muestreos/"
+PATH_FILENAME <- "F:/misdoc/sap/conertura muestreos/"
 FILENAME_SIRENO <- "muestreos_2016_new0108.TXT"
 FILENAME_IPD <- "IPD_1_trim.csv"
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
