@@ -21,6 +21,13 @@
 library(dplyr) #arrange_()
 library(tools) #file_path_sans_ext()
 
+# ---- install sapmuebase from local
+#install("F:/misdoc/sap/sapmuebase")
+# ---- install sapmuebase from github
+#install_github("Eucrow/sapmuebase") # Make sure this is the last version
+
+library(sapmuebase) # and load the library
+
 
 # ---- SET WORKING DIRECTORY ---------------------------------------------------
 
@@ -45,97 +52,6 @@ MONTH <- "all" #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
 YEAR <- "2016"
 
 # #### FUNCTIONS ###############################################################
-
-#function to split the file tallas_x_up
-##filename: name to import
-##export = "TRUE" the file is export to csc
-split_tallas_x_up <- function(path_filename, filename, export="FALSE", month_selected=""){
-  
-  fullpath<-paste(path_filename, filename, sep="/")
-  
-  #read the file to find where are the "----"
-  temp_tallas_x_up<-readLines(c(fullpath))
-  cut_rows<-grep("^---", temp_tallas_x_up, value="FALSE")#return two values
-  
-  #if '---' not exist, this is not a valid file
-  if(length(cut_rows)==0){
-    stop ("This file doesn't like a valid a tallas_x_up file.")
-  } 
-  
-  #split the file:
-  full_lengths<-read.table(file=fullpath, nrows=(cut_rows[1]-2), head=TRUE, sep=";", fill=TRUE)
-  
-  ##catches_in_lengths: catches of the sampled species
-  catches_in_lengths<-subset(full_lengths, full_lengths$TALLA=="T.T. :")
-  ##lengths
-  lengths<-subset(full_lengths, full_lengths$TALLA!="T.T. :")
-  ##catchs
-  catches<-read.table(file=fullpath, skip=(cut_rows[2]), sep=";", head=TRUE)
-  sapply(catches, class)
-  
-  
-  #correct category "0901 Chicharros, jureles"
-  catches$CATEGORIA <- as.character(catches$CATEGORIA)
-  catches$CATEGORIA[catches$CATEGORIA == "0901 Chicharros, jureles"] <- "0901 Chicharros jureles"
-  catches$CATEGORIA <- as.factor(catches$CATEGORIA)
-  
-  catches_in_lengths$CATEGORIA <- as.character(catches_in_lengths$CATEGORIA)
-  catches_in_lengths$CATEGORIA[catches_in_lengths$CATEGORIA == "0901 Chicharros, jureles"] <- "0901 Chicharros jureles"
-  catches_in_lengths$CATEGORIA <- as.factor(catches_in_lengths$CATEGORIA)
-  
-  lengths$CATEGORIA <- as.character(lengths$CATEGORIA)
-  lengths$CATEGORIA[lengths$CATEGORIA == "0901 Chicharros, jureles"] <- "0901 Chicharros jureles"
-  lengths$CATEGORIA <- as.factor(lengths$CATEGORIA)
-  
-  
-  #select only the month
-  if (month_selected != "" || month_selected == "all"){
-    # to avoid some problems with Spanish_Spain.1252 (or if you are using another locale), change locale to Spanish_United States.1252:
-    lct <- Sys.getlocale("LC_TIME")
-    Sys.setlocale("LC_TIME","Spanish_United States.1252")
-    
-    catches$fecha_formateada <- (as.character(catches$FECHA))
-    catches$fecha_formateada <- as.Date(catches$fecha_formateada, "%d-%b-%y")
-    catches$fecha_formateada <- as.POSIXlt(catches$fecha_formateada)
-    catches$MES <- catches$fecha_formateada$mon+1 #+1 because POSIXlt$mon is 0 to 11
-    if(month_selected != "all"){
-      catches <- catches[catches$month==month_selected,]
-    }
-    
-    catches_in_lengths$fecha_formateada <- (as.character(catches_in_lengths$FECHA))
-    catches_in_lengths$fecha_formateada <- as.Date(catches_in_lengths$fecha_formateada, "%d-%b-%y")
-    catches_in_lengths$fecha_formateada <- as.POSIXlt(catches_in_lengths$fecha_formateada)
-    catches_in_lengths$MES <- catches_in_lengths$fecha_formateada$mon+1 #+1 because POSIXlt$mon is 0 to 11
-    if(month_selected != "all"){
-      catches_in_lengths <- catches_in_lengths[catches_in_lengths$month==month_selected,]
-    }
-    
-    lengths$fecha_formateada <- (as.character(lengths$FECHA))
-    lengths$fecha_formateada <- as.Date(lengths$fecha_formateada, "%d-%b-%y")
-    lengths$fecha_formateada <- as.POSIXlt(lengths$fecha_formateada)
-    lengths$MES <- lengths$fecha_formateada$mon+1 #+1 because POSIXlt$mon is 0 to 11
-    if(month_selected != "all"){
-      lengths <- lengths[lengths$month==month_selected,]
-    }
-    
-    # and now the return the initial configuration of locale:
-    Sys.setlocale("LC_TIME", lct)
-  }
-  #group in list
-  tallas_x_up<-list(catches_in_lengths=catches_in_lengths, lengths=lengths, catches=catches)
-  
-  #remove the extension
-  filename_without_extension <- file_path_sans_ext(filename)
-  
-  #export in csv
-  # if(export=="TRUE"){
-  #   write.csv(tallas_x_up$catches, paste(PATH_FILENAME, filename_without_extension, "_catches.csv", sep=""), quote=FALSE, row.names=FALSE)
-  #   write.csv(tallas_x_up$catches_in_lengths, paste(PATH_FILENAME, filename_without_extension, "_catches_in_lengths.cvs", sep=""), quote=FALSE, row.names=FALSE)
-  #   write.csv(tallas_x_up$lengths, paste(PATH_FILENAME, filename_without_extension, "_lengths.csv", sep=""), quote=FALSE, row.names=FALSE)
-  # }
-  #return data
-  return(tallas_x_up)
-}
 
 #function to import the ipd trips data file
 ##filename: name to import
@@ -162,9 +78,10 @@ export_csv <- function(data, filename){
 # #### IMPORT DATA #############################################################
 
 # import tallas_x_up and isolate catches dataframe
-  tallas_x_up<-split_tallas_x_up(path_filename=PATH_FILENAME, filename=FILENAME_SIRENO, export=FALSE, month_selected = MONTH)
-  catches <- tallas_x_up$catches
+  #tallas_x_up<-split_tallas_x_up(path_filename=PATH_FILENAME, filename=FILENAME_SIRENO, export=FALSE, month_selected = MONTH)
+  #catches <- tallas_x_up$catches
   
+  muestreos_up <- import_muestreos_up()
   #change column names
   names(catches)[names(catches) == "UNIPESCOD"]<-"ESTRATO_RIM"
   
