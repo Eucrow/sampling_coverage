@@ -31,7 +31,7 @@ library(sapmuebase) # and load the library
 
 # ---- SET WORKING DIRECTORY ---------------------------------------------------
 
-setwd("F:/misdoc/sap/cobertura muestreos")
+setwd("F:/misdoc/sap/cobertura muestreos/abril")
 
 
 # ---- CONSTANTS ---------------------------------------------------------------
@@ -40,15 +40,22 @@ PATH <- getwd()
 
 # ---- GLOBAL VARIABLES --------------------------------------------------------
 
-BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "TIP_MUESTREO", "MES")  ###list with the common fields used in tables
+BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
 
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/conertura muestreos/"
-FILENAME_SIRENO <- "muestreos_2016_new0108.TXT"
-FILENAME_IPD <- "IPD_1_trim.csv"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/abril/"
+
+FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
+FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
+FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
+
+FILENAME_IPD <- "IPD_4.csv"
+
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
-MONTH <- "all" #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
+
+MONTH <- 4 #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
+
 YEAR <- "2016"
 
 # #### FUNCTIONS ###############################################################
@@ -81,12 +88,8 @@ export_csv <- function(data, filename){
   #tallas_x_up<-split_tallas_x_up(path_filename=PATH_FILENAME, filename=FILENAME_SIRENO, export=FALSE, month_selected = MONTH)
   #catches <- tallas_x_up$catches
   
-  muestreos_up <- import_muestreos_up()
-  #change column names
-  names(catches)[names(catches) == "UNIPESCOD"]<-"ESTRATO_RIM"
-  
-  #export to csv
-  #write.csv(catches, file="catches.csv", row.names = FALSE, quote = FALSE)
+  muestreos_up <- import_muestreos_up(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = 4)
+  catches <- muestreos_up$catches  
 
 # import IPD's trip data
   ipd_trips <- import_ipd_trips()
@@ -112,10 +115,10 @@ export_csv <- function(data, filename){
       ipd_trips <- aggregate(x = ipd_trips$NUM_MAREAS_IPD, by = by, FUN = sum)
       colnames(ipd_trips) <- c("MES", "PUERTO", "ESTRATO_RIM", "NUM_MAREAS_IPD")
       
-    # Sum Avil?s with Gij?n
+    # Sum Avilés with Gijón
       # change names
-      ipd_trips[ipd_trips$PUERTO=="AVIL?S","PUERTO"] <-  "AVIL?S / GIJ?N"
-      ipd_trips[ipd_trips$PUERTO=="GIJ?N","PUERTO"] <-  "AVIL?S / GIJ?N"
+      ipd_trips[ipd_trips$PUERTO=="AVILÉS","PUERTO"] <-  "AVILÉS / GIJÓN"
+      ipd_trips[ipd_trips$PUERTO=="GIJÓN","PUERTO"] <-  "AVILÉS / GIJÓN"
       
       #sum
       by <- list(ipd_trips$MES, ipd_trips$PUERTO, ipd_trips$ESTRATO_RIM)
@@ -126,14 +129,19 @@ export_csv <- function(data, filename){
     levels(ipd_trips$ESTRATO_RIM)[levels(ipd_trips$ESTRATO_RIM)=="BACA_AP"] <- "BACA_APN"
   
   # Clean and prepare sireno trip dataframe
-  catches_to_clean <- catches[, c(BASE_FIELDS)]
+  catches_to_clean <- catches
+  catches_to_clean$MES <- strptime(catches_to_clean$FECHA, "%d-%m-%y")
+  catches_to_clean$MES <- format(catches_to_clean$MES, "%m")
+  catches_to_clean$MES <- as.integer(catches_to_clean$MES)
+  catches_to_clean <- catches_to_clean[catches_to_clean$MES==MONTH,]
+  catches_to_clean <- catches_to_clean[, c(BASE_FIELDS)]
   catches_to_clean <- unique(catches_to_clean)
   catches_to_clean$PUERTO <- toupper(catches_to_clean$PUERTO)
-  catches_clean <- catches_to_clean[, c("PUERTO", "ESTRATO_RIM", "TIP_MUESTREO", "MES")]
+  catches_clean <- catches_to_clean[, c("PUERTO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")]
     # select only mt2 samples
-    catches_clean <- catches_clean[catches_clean["TIP_MUESTREO"]==2,]
+    catches_clean <- catches_clean[catches_clean["COD_TIPO_MUE"]==2,]
     
-    catches_clean<-catches_clean[,!(names(catches_clean))==c("TIP_MUESTREO")]
+    catches_clean<-catches_clean[,!(names(catches_clean))==c("COD_TIPO_MUE")]
     
     # obtain number of trips in sireno dataframe
     by <- list(catches_clean$PUERTO, catches_clean$ESTRATO_RIM, catches_clean$MES)
@@ -151,10 +159,10 @@ export_csv <- function(data, filename){
       sireno_trips <- aggregate(x = sireno_trips$NUM_MAREAS_SIRENO, by = by, FUN = sum)
       colnames(sireno_trips) <- c("MES", "PUERTO", "ESTRATO_RIM", "NUM_MAREAS_SIRENO")
     
-    # Sum Avil?s with Gij?n
+    # Sum Avilés with Gijón
       # change names
-      sireno_trips[sireno_trips$PUERTO=="AVIL?S","PUERTO"] <-  "AVIL?S / GIJ?N"
-      sireno_trips[sireno_trips$PUERTO=="GIJ?N","PUERTO"] <-  "AVIL?S / GIJ?N"
+      sireno_trips[sireno_trips$PUERTO=="AVILÉS","PUERTO"] <-  "AVILÉS / GIJÓN"
+      sireno_trips[sireno_trips$PUERTO=="GIJÓN","PUERTO"] <-  "AVILÉS / GIJÓN"
       
       #sum
       by <- list(sireno_trips$MES, sireno_trips$PUERTO, sireno_trips$ESTRATO_RIM)
@@ -165,11 +173,12 @@ export_csv <- function(data, filename){
       levels(sireno_trips$ESTRATO_RIM)[levels(sireno_trips$ESTRATO_RIM)=="BACA_AP"] <- "BACA_APN"
   
   # Clean and prepare prescriptions dataframe
-  prescriptions_trips <- prescriptions[, c("PUERTO", "Pesquer?a", "N?.mareas")]
+  prescriptions_trips <- prescriptions[, c("PUERTO", "Pesquería", "Nº.mareas")]
+  colnames(prescriptions_trips) <- c("PUERTO", "PESQUERIA", "NUM_MAREAS")
   prescriptions_trips$PUERTO <- toupper(prescriptions_trips$PUERTO)
 
     # obtain number of trips in prescriptions dataframe by month
-      prescriptions_trips$"N?.mareas" <- round(prescriptions$N?.mareas/12, 1)
+      prescriptions_trips$NUM_MAREAS <- round(prescriptions_trips$NUM_MAREAS/12, 1)
       #change name columns
       colnames(prescriptions_trips) <- c("PUERTO", "ESTRATO_RIM", "NUM_MAREAS_PRESCRIPCIONES_by_month")
 
@@ -184,13 +193,19 @@ export_csv <- function(data, filename){
       # } else if (is.numeric(MONTH) && MONTH <= 12) {
       #   prescriptions_trips$MES <- MONTH
       # }
-    prescriptions_trips$frec_months <- 3#ES IMPORTANTE ATUOMATIZAR ESTO
-    prescriptions_trips <- prescriptions_trips[rep(row.names(prescriptions_trips), prescriptions_trips$frec_months),]
-    prescriptions_trips$MES <- 1:3#Y ESTO
-    prescriptions_trips<-prescriptions_trips[,!(names(prescriptions_trips))==c("frec_months")]
+    
+    #LAS LINEAS SIGUIENTES SON PARA EL CASO DE QUE SEA UN TRIMESTRE:
+    ##ESTO ES UNA CHAPUZA DE MUCHO CUIDADO:
+    #prescriptions_trips$frec_months <- 3#ES IMPORTANTE ATUOMATIZAR ESTO
+    #prescriptions_trips <- prescriptions_trips[rep(row.names(prescriptions_trips), prescriptions_trips$frec_months),]
+    #prescriptions_trips$MES <- 1:3#Y ESTO
+    #prescriptions_trips<-prescriptions_trips[,!(names(prescriptions_trips))==c("frec_months")]
       
     # change name column
     names(prescriptions_trips)[names(prescriptions_trips)=="NUM_MAREAS_PRESCRIPCIONES_by_month"] <- "NUM_MAREAS_PRES"
+    # ESTO TAMBIÉN HABRÍA QUE CAMBIARLO:
+    # add column with the month
+    prescriptions_trips$MES <- MONTH
     
     #change port's name
     prescriptions_trips[prescriptions_trips$PUERTO=="S. VICENTE","PUERTO"] <-  "SAN VICENTE DE LA BARQUERA"
@@ -203,7 +218,7 @@ export_csv <- function(data, filename){
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="MERLUCEROS_AC"] <- "MERLUCER_AC"
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="NASAPULPO_CN"] <- "NASAPULP_CN"
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="LINEA_CABALLA"] <- "LIN_CABALLA"
-    #ES NECESARIO VOLVER A AGRUPAR:
+    #ES NECESARIO VOLVER A AGRUPAR:¿¿¿??? yo creo que no
     
 
   
@@ -222,13 +237,14 @@ export_csv <- function(data, filename){
 
   
 #export to csv
-  write.csv(sireno_ipd_presc, file = "cobertura muestreos IPD.csv", quote = FALSE, row.names = FALSE, na="0")
+  filename <- paste("cobertura_muestreos_IPD_", MONTH, ".csv", sep="")
+  write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
   
   
   
 
 # #### check if MT2 are really MT2 or MT1 ######################################
-  catches_MT2 <- catches[catches["TIP_MUESTREO"]==2,]
+  catches_MT2 <- catches[catches["COD_TIPO_MUE"]==2,]
   
   
   
@@ -242,7 +258,7 @@ export_csv <- function(data, filename){
   # select sireno trips keyed as MT2
   trips_sireno_w_vessel <- catches[, c(BASE_FIELDS)]
   trips_sireno_w_vessel <- unique(trips_sireno_w_vessel)
-  trips_sireno_w_vessel <- trips_sireno_w_vessel[trips_sireno_w_vessel["TIP_MUESTREO"]==2,]
+  trips_sireno_w_vessel <- trips_sireno_w_vessel[trips_sireno_w_vessel["COD_TIPO_MUE"]==2,]
   
   # MT1 keyed in sireno as MT2
   false_MT2_in_sireno <- merge(x = trips_sireno_w_vessel, y = trips_catches_in_lengths, all = TRUE)
@@ -258,7 +274,7 @@ export_csv <- function(data, filename){
   
   # false MT1 in sireno
   lengths <- tallas_x_up$lengths
-  lengths_MT1 <- lengths[lengths["TIP_MUESTREO"]==1,]
+  lengths_MT1 <- lengths[lengths["COD_TIPO_MUE"]==1,]
   
   to_lengths_MT1_by_trip <- select(lengths_MT1, FECHA, TIPO.MUESTREO, UNIPESCOD, PUERTO, BARCO, ESPECIE.TAX., CATEGORIA, ESPECIE, P.MUE.DES, TALLA, EJEMPLARES.MEDIDOS)
   
