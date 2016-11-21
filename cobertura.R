@@ -21,8 +21,9 @@
 library(dplyr) #arrange_()
 library(tools) #file_path_sans_ext()
 
+library(devtools)
 # ---- install sapmuebase from local
-#install("F:/misdoc/sap/sapmuebase")
+install("F:/misdoc/sap/sapmuebase")
 # ---- install sapmuebase from github
 #install_github("Eucrow/sapmuebase") # Make sure this is the last version
 
@@ -31,7 +32,7 @@ library(sapmuebase) # and load the library
 
 # ---- SET WORKING DIRECTORY ---------------------------------------------------
 
-setwd("F:/misdoc/sap/cobertura muestreos/abril")
+setwd("F:/misdoc/sap/cobertura muestreos/junio")
 
 
 # ---- CONSTANTS ---------------------------------------------------------------
@@ -44,19 +45,23 @@ BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES
 
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/abril/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/junio/"
 
 FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
 FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
 FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
-FILENAME_IPD <- "IPD_4.csv"
+FILENAME_IPD <- "IPD_6.csv"
 
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
 
-MONTH <- 4 #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
+MONTH <- 6 #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
 
 YEAR <- "2016"
+
+################################################################################
+
+month_as_character <- sprintf("%02d", MONTH)
 
 # #### FUNCTIONS ###############################################################
 
@@ -88,7 +93,7 @@ export_csv <- function(data, filename){
   #tallas_x_up<-split_tallas_x_up(path_filename=PATH_FILENAME, filename=FILENAME_SIRENO, export=FALSE, month_selected = MONTH)
   #catches <- tallas_x_up$catches
   
-  muestreos_up <- import_muestreos_up(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = 4)
+  muestreos_up <- importMuestreosUP(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = MONTH)
   catches <- muestreos_up$catches  
 
 # import IPD's trip data
@@ -234,55 +239,122 @@ export_csv <- function(data, filename){
   
   sireno_ipd_presc <- merge(x = sireno_ipd, y = prescriptions_trips, by = c("PUERTO", "ESTRATO_RIM", "MES"), all.x = TRUE, all.y = TRUE)
   sireno_ipd_presc <- arrange(sireno_ipd_presc, MES, PUERTO, ESTRATO_RIM)
+  
+  sireno_ipd_presc[is.na(sireno_ipd_presc)] <- 0
 
   
 #export to csv
-  filename <- paste("cobertura_muestreos_IPD_", MONTH, ".csv", sep="")
-  write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
-  
-  
+  # filename <- paste("cobertura_muestreos_IPD_", MONTH, ".csv", sep="")
+  # write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
   
 
-# #### check if MT2 are really MT2 or MT1 ######################################
-  catches_MT2 <- catches[catches["COD_TIPO_MUE"]==2,]
+library(openxlsx)
+## openxlsx
   
-  
-  
-  # select trips with lengths
-  catches_in_lenghts <- tallas_x_up$catches_in_lengths
-  trips_catches_in_lengths <- catches_in_lenghts[, c("FECHA", "UNIPESCOD", "PUERTO", "BARCO")]
-  trips_catches_in_lengths <- unique(trips_catches_in_lengths)  
-  colnames(trips_catches_in_lengths) <- c("FECHA", "ESTRATO_RIM", "PUERTO", "BARCO")
-  trips_catches_in_lengths$TIENE_TALLAS <- "con tallas"
-  
-  # select sireno trips keyed as MT2
-  trips_sireno_w_vessel <- catches[, c(BASE_FIELDS)]
-  trips_sireno_w_vessel <- unique(trips_sireno_w_vessel)
-  trips_sireno_w_vessel <- trips_sireno_w_vessel[trips_sireno_w_vessel["COD_TIPO_MUE"]==2,]
-  
-  # MT1 keyed in sireno as MT2
-  false_MT2_in_sireno <- merge(x = trips_sireno_w_vessel, y = trips_catches_in_lengths, all = TRUE)
-  false_MT2_in_sireno <- false_MT2_in_sireno[is.na(false_MT2_in_sireno$TIENE_TALLAS),]  
-  
-  export_csv(false_MT2_in_sireno, "false_MT2_in_sireno")
+  # ---- Create a Workbook
+    wb <- createWorkbook()
+ 
+     
+  # ---- Add worksheets
+    name_worksheet <- paste("0",MONTH,sep="")
+    addWorksheet(wb, name_worksheet)
 
+    
+  # ---- Add calculated columns
+    num_rows_df <- nrow(sireno_ipd_presc)
+    num_cols_df <- length(sireno_ipd_presc)
+    first_row <- 2 #the first row with data (avoid the header row) in excel
+    last_row <- num_rows_df+1 
   
-  # MT1 samples with lengths --> usually keyed initial and final lenght but without lenght meassures
-  # this is not useful
-  # MT1_with_lengths_in_sireno <- merge(x = trips_sireno_w_vessel, y = trips_catches_in_lengths, all = TRUE)  
-  # MT1_with_lengths_in_sireno <- false_MT1_in_sireno[is.na(false_MT1_in_sireno$MES),]
+    # ATTENTION: the formula must have the english format:
+    # name of function in english, parameters separation with comma
+    SIRENOvsIPD <- paste0("IF(D", first_row:last_row, "=E", first_row:last_row, ",\"CORRECTO\",\"FALSO\")")
   
-  # false MT1 in sireno
-  lengths <- tallas_x_up$lengths
-  lengths_MT1 <- lengths[lengths["COD_TIPO_MUE"]==1,]
-  
-  to_lengths_MT1_by_trip <- select(lengths_MT1, FECHA, TIPO.MUESTREO, UNIPESCOD, PUERTO, BARCO, ESPECIE.TAX., CATEGORIA, ESPECIE, P.MUE.DES, TALLA, EJEMPLARES.MEDIDOS)
-  
-  lengths_MT1_by_trip <- group_by(to_lengths_MT1_by_trip, FECHA, TIPO.MUESTREO, UNIPESCOD, PUERTO, BARCO)
-  lengths_MT1_by_trip <- summarise(lengths_MT1_by_trip, EJEMMPLARES_MEDIDOS = sum(EJEMPLARES.MEDIDOS))
-  false_MT1_in_sireno <- filter(lengths_MT1_by_trip, !is.na(EJEMMPLARES_MEDIDOS))
-  
-  export_csv(false_MT1_in_sireno, "false_MT1_in_sireno")
+    SIRENOvsPRESCRIPCIONES <- paste0("IF(D", first_row:last_row ,"=F", first_row:last_row, ",\"OK\",", "IF(D", first_row:last_row ,"<F", first_row:last_row,",\"DEFICIT\", IF(D", first_row:last_row, ">F", first_row:last_row," ,\"SUPERAVIT\",)))" )
+    
+    # And add it to the workbook
+    sireno_ipd_presc["SIRENOvsIPD"] <- SIRENOvsIPD
+    sireno_ipd_presc["SIRENOvsPRESCRIPCIONES"] <- SIRENOvsPRESCRIPCIONES
+    
+    # the variable must to have the formula class
+    # in this way, the variable has two clases!! :O ???????????:
+    class(sireno_ipd_presc[["SIRENOvsIPD"]]) <- c(class(sireno_ipd_presc[["SIRENOvsIPD"]]), "formula")
+    class(sireno_ipd_presc[["SIRENOvsPRESCRIPCIONES"]]) <- c(class(sireno_ipd_presc[["SIRENOvsPRESCRIPCIONES"]]), "formula")
 
-  PRUEBA <- lengths[lengths$FECHA=="03-MAR-16" & lengths$BARCO == "MOROPA",]
+
+  # ---- Add data to the workbook
+    writeData(wb, name_worksheet, sireno_ipd_presc)    
+    
+    
+  # ---- Stylize data
+    # ---- Create styles
+      head_style <- createStyle(fgFill = "#8DB4E3", 
+                                fontName="Calibri", 
+                                fontSize = "11",
+                                halign = "center",
+                                valign = "center")
+      head_style_remarked <- createStyle(textDecoration = "bold",
+                                         fgFill = "#C2D69A",
+                                         halign = "center",
+                                         valign = "center")
+      borders_style <- createStyle(border =  "TopBottomLeftRight",
+                                   borderColour = "#000000",
+                                   borderStyle = "thin")
+      total_style <- createStyle(fgFill = "#538ED5",
+                                 textDecoration = "bold",
+                                 halign = "center")
+      number_style <- createStyle(halign = "center")
+
+    # ---- Apply styles
+      addStyle(wb, sheet = name_worksheet, head_style, rows = 1, cols = 1:num_cols_df)
+      addStyle(wb, sheet = name_worksheet, head_style_remarked, rows = 1, cols = (num_cols_df+1):(num_cols_df+2))
+      addStyle(wb, sheet = name_worksheet, total_style, rows = num_rows_df+2, cols = 1:8)
+      addStyle(wb, sheet = name_worksheet, number_style, rows = 2:(num_rows_df+1), cols = 3:6, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, sheet = name_worksheet, borders_style, rows = 1:(num_rows_df+1), cols = 1:8, stack = TRUE, gridExpand = TRUE)
+    
+    # ---- Cells width
+      setColWidths(wb, name_worksheet, cols = c(1:(num_cols_df+2)), widths = c(28, 28, 11, 20, 20, 20, 20, 25) )
+    
+    # ---- Row heights
+      setRowHeights(wb, name_worksheet, rows = 1, heights = "24")
+    
+  
+  # ---- Add text cells
+    with_ALL_cells <- "ALL"
+    comment_cell <- "Las prescripciones establecen un numero de mareas anuales que deben repartirse a lo largo de los 12 meses. Para determinados estratos (LINEA_CABALLA, CERCO_CN en Santoña) el muestreo se aumenta o concentra, por necesidades de seguimiento de la actividad "
+    
+    # ---- And add it to the workbook
+    writeData(wb, name_worksheet, with_ALL_cells, startCol = 1, startRow = num_rows_df+2)
+    writeData(wb, name_worksheet, with_ALL_cells, startCol = 2, startRow = num_rows_df+2)
+    writeData(wb, name_worksheet, comment_cell, startCol = 1, startRow = num_rows_df+7)
+  
+
+  # ---- Add calculated rows
+    total_cells <- paste0("SUM(", letters[3:6], "2:", letters[3:6], num_rows_df+1 ,")")
+    
+    # ---- And add it to the workbook
+    # TODO: improve this:
+    writeFormula(wb, name_worksheet, total_cells[1], startCol = 3, startRow = num_rows_df+2)
+    writeFormula(wb, name_worksheet, total_cells[2], startCol = 4, startRow = num_rows_df+2)
+    writeFormula(wb, name_worksheet, total_cells[3], startCol = 5, startRow = num_rows_df+2)
+    writeFormula(wb, name_worksheet, total_cells[4], startCol = 6, startRow = num_rows_df+2)
+    
+  # ---- Add conditional formatting
+    content_false_style <- createStyle(bgFill = "#E46D0A")
+    content_deficit_style <- createStyle(bgFill = "#E46D0A")
+    content_superavit_style <- createStyle(bgFill = "#FFC000")
+    
+    conditionalFormatting(wb, name_worksheet, cols = 7, rows = 2:num_rows_df, rule = "==\"FALSO\"", style = content_false_style, type = "expression")
+    conditionalFormatting(wb, name_worksheet, cols = 8, rows = 2:num_rows_df, rule = "==\"DEFICIT\"", style = content_deficit_style, type = "expression")
+    conditionalFormatting(wb, name_worksheet, cols = 8, rows = 2:num_rows_df, rule = "==\"SUPERAVIT\"", style = content_superavit_style, type = "expression")
+  
+  
+  
+  # ---- Export to excel
+  final_filename <- paste0("cobertura_muestreos_IPD_", YEAR, "_" , month_as_character, ".xlsx")
+  # source: https://github.com/awalker89/openxlsx/issues/111
+  Sys.setenv("R_ZIPCMD" = "C:/Rtools/bin/zip.exe") ## path to zip.exe
+  saveWorkbook(wb, final_filename, overwrite = TRUE)
+  
+  
   
