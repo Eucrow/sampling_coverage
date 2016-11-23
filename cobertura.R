@@ -7,8 +7,8 @@
 ####
 #### author: Marco A. Amez Fernandez
 #### email: ieo.marco.a.amez@gmail.com
-#### date of last modification: 3/8/2016
-#### version: 1.00
+#### date of last modification: 23/11/2016
+#### version: 1.5
 ####
 #### files required: prescripciones_2016.csv, file with the IPD trips, file with
 #### the samples keyed in SIRENO
@@ -32,7 +32,7 @@ library(sapmuebase) # and load the library
 
 # ---- SET WORKING DIRECTORY ---------------------------------------------------
 
-setwd("F:/misdoc/sap/cobertura muestreos/junio")
+setwd("F:/misdoc/sap/cobertura muestreos/julio")
 
 
 # ---- CONSTANTS ---------------------------------------------------------------
@@ -45,17 +45,17 @@ BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES
 
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/junio/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/julio/"
 
 FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
 FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
 FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
-FILENAME_IPD <- "IPD_6.csv"
+FILENAME_IPD <- "IPD_7.csv"
 
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
 
-MONTH <- 6 #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
+MONTH <- 7 #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
 
 YEAR <- "2016"
 
@@ -90,9 +90,6 @@ export_csv <- function(data, filename){
 # #### IMPORT DATA #############################################################
 
 # import tallas_x_up and isolate catches dataframe
-  #tallas_x_up<-split_tallas_x_up(path_filename=PATH_FILENAME, filename=FILENAME_SIRENO, export=FALSE, month_selected = MONTH)
-  #catches <- tallas_x_up$catches
-  
   muestreos_up <- importMuestreosUP(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = MONTH)
   catches <- muestreos_up$catches  
 
