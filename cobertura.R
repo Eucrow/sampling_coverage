@@ -20,46 +20,44 @@
 
 library(dplyr) #arrange_()
 library(tools) #file_path_sans_ext()
-
 library(devtools)
+
 # ---- install sapmuebase from local
 install("F:/misdoc/sap/sapmuebase")
+
 # ---- install sapmuebase from github
 #install_github("Eucrow/sapmuebase") # Make sure this is the last version
 
 library(sapmuebase) # and load the library
 
-
-# ---- SET WORKING DIRECTORY ---------------------------------------------------
-
-setwd("F:/misdoc/sap/cobertura muestreos/julio")
-
-
-# ---- CONSTANTS ---------------------------------------------------------------
-
-PATH <- getwd()
-
-# ---- GLOBAL VARIABLES --------------------------------------------------------
-
-BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
-
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/julio/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/agosto/"
 
 FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
 FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
 FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
-FILENAME_IPD <- "IPD_7.csv"
+FILENAME_IPD <- "IPD_8.csv"
 
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
 
-MONTH <- 7 #empty, a month in number, or "all" #SIN IMPLEMENTAR!!!!!!!!
+MONTH <- 8 #empty, a month in number, or "all"
 
 YEAR <- "2016"
 
+# set working directory:
+setwd("F:/misdoc/sap/cobertura muestreos/agosto")
+
 ################################################################################
+
+# ---- CONSTANTS AND GLOBAL VARIABLES ------------------------------------------
+
+PATH <- getwd()
+
+
+BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
+
 
 month_as_character <- sprintf("%02d", MONTH)
 
@@ -74,19 +72,6 @@ import_ipd_trips <- function(){
   return (clean_ipd_trips)
 }
 
-# function to import our usual csv or txt files
-# file must be in the same directory than this script
-import_csv <- function(filename){
-  fullpath<-paste(PATH_FILENAME, filename, sep="")
-  file <- read.table(file=fullpath, head=TRUE, sep=";", fill=TRUE)
-}
-
-export_csv <- function(data, filename){
-  fullpath <- paste(PATH_FILENAME, filename, sep="")
-  fullpath <- paste(fullpath, ".csv", sep="")
-  write.csv(data, file=fullpath, quote = FALSE, row.names = FALSE)
-}
-
 # #### IMPORT DATA #############################################################
 
 # import tallas_x_up and isolate catches dataframe
@@ -97,7 +82,7 @@ export_csv <- function(data, filename){
   ipd_trips <- import_ipd_trips()
   
 # import prescriptions file
-  prescriptions <- import_csv(FILENAME_PRESCRIPTIONS)
+  prescriptions <- ImportCsvSAPMUE(FILENAME_PRESCRIPTIONS)
 
 
 # #### CLEAN AND PREPARE DATA ##################################################
