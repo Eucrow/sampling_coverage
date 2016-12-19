@@ -42,7 +42,7 @@ FILENAME_IPD <- "IPD_9.csv"
 
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
 
-MONTH <- 8 #empty, a month in number, or "all"
+MONTH <- 9 #empty, a month in number, or "all"
 
 YEAR <- "2016"
 
@@ -77,8 +77,17 @@ OLD_import_ipd_trips <- function(){
 import_ipd_trips <- function(){
   fullpath<-paste(PATH_FILENAME, FILENAME_IPD, sep="")
   ipd_trips<-read.table(file=fullpath, head=TRUE, sep=";", fill=TRUE)
-  clean_ipd_trips <- ipd_trips[, c("Mes", "Puerto", "Metier" ,"Nº.Mareas")]
-  return (clean_ipd_trips)
+  colnames(ipd_trips) <- c("MES", "AÑO", "PROYECTO", "PUERTO", "ESTRATO_RIM", "TIPO_MUE", "NUM_MAREAS", "OBSERVACIONES")
+  return (ipd_trips)
+}
+
+
+get_ipd_trips <- function(){
+  ipd_trips <- import_ipd_trips()
+  ipd_trips <- ipd_trips %>%
+                filter(PROYECTO == "AREA ICES" & TIPO_MUE == "MT2") %>%
+                select(MES, PUERTO, ESTRATO_RIM, NUM_MAREAS, OBSERVACIONES)
+  return(ipd_trips)
 }
 
 # #### IMPORT DATA #############################################################
@@ -88,7 +97,7 @@ import_ipd_trips <- function(){
   catches <- muestreos_up$catches  
 
 # import IPD's trip data
-  ipd_trips <- import_ipd_trips()
+  ipd_trips <- get_ipd_trips()
   
 # import prescriptions file
   prescriptions <- ImportCsvSAPMUE(FILENAME_PRESCRIPTIONS)
@@ -122,7 +131,7 @@ import_ipd_trips <- function(){
       colnames(ipd_trips) <- c("MES", "PUERTO", "ESTRATO_RIM", "NUM_MAREAS_IPD")
     
     # Cambio de BACA_AP A BACA_APN --> ESTO NO LO TENDR?AMOS QUE HACER EN EL FUTURO  
-    levels(ipd_trips$ESTRATO_RIM)[levels(ipd_trips$ESTRATO_RIM)=="BACA_AP"] <- "BACA_APN"
+    # levels(ipd_trips$ESTRATO_RIM)[levels(ipd_trips$ESTRATO_RIM)=="BACA_AP"] <- "BACA_APN"
   
   # Clean and prepare sireno trip dataframe
   catches_to_clean <- catches
@@ -239,6 +248,7 @@ import_ipd_trips <- function(){
   # write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
   
 
+#install.packages("openxlsx", dependencies=TRUE)  
 library(openxlsx)
 ## openxlsx
   
@@ -321,14 +331,14 @@ library(openxlsx)
   
 
   # ---- Add calculated rows
-    total_cells <- paste0("SUM(", letters[3:6], "2:", letters[3:6], num_rows_df+1 ,")")
+    total_cells <- paste0("SUM(", letters[4:6], "2:", letters[4:6], num_rows_df+1 ,")")
     
     # ---- And add it to the workbook
     # TODO: improve this:
-    writeFormula(wb, name_worksheet, total_cells[1], startCol = 3, startRow = num_rows_df+2)
-    writeFormula(wb, name_worksheet, total_cells[2], startCol = 4, startRow = num_rows_df+2)
-    writeFormula(wb, name_worksheet, total_cells[3], startCol = 5, startRow = num_rows_df+2)
-    writeFormula(wb, name_worksheet, total_cells[4], startCol = 6, startRow = num_rows_df+2)
+    writeFormula(wb, name_worksheet, total_cells[1], startCol = 4, startRow = num_rows_df+2)
+    writeFormula(wb, name_worksheet, total_cells[2], startCol = 5, startRow = num_rows_df+2)
+    writeFormula(wb, name_worksheet, total_cells[3], startCol = 6, startRow = num_rows_df+2)
+
     
   # ---- Add conditional formatting
     content_false_style <- createStyle(bgFill = "#E46D0A")
@@ -338,9 +348,7 @@ library(openxlsx)
     conditionalFormatting(wb, name_worksheet, cols = 7, rows = 2:num_rows_df, rule = "==\"FALSO\"", style = content_false_style, type = "expression")
     conditionalFormatting(wb, name_worksheet, cols = 8, rows = 2:num_rows_df, rule = "==\"DEFICIT\"", style = content_deficit_style, type = "expression")
     conditionalFormatting(wb, name_worksheet, cols = 8, rows = 2:num_rows_df, rule = "==\"SUPERAVIT\"", style = content_superavit_style, type = "expression")
-  
-  
-  
+
   # ---- Export to excel
   final_filename <- paste0("cobertura_muestreos_IPD_", YEAR, "_" , month_as_character, ".xlsx")
   # source: https://github.com/awalker89/openxlsx/issues/111
