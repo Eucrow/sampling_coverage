@@ -32,13 +32,13 @@ library(sapmuebase) # and load the library
 
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/agosto/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/septiembre/"
 
 FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
 FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
 FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
-FILENAME_IPD <- "IPD_8.csv"
+FILENAME_IPD <- "IPD_9.csv"
 
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
 
@@ -47,7 +47,7 @@ MONTH <- 8 #empty, a month in number, or "all"
 YEAR <- "2016"
 
 # set working directory:
-setwd("F:/misdoc/sap/cobertura muestreos/agosto")
+setwd("F:/misdoc/sap/cobertura muestreos/septiembre")
 
 ################################################################################
 
@@ -63,12 +63,21 @@ month_as_character <- sprintf("%02d", MONTH)
 
 # #### FUNCTIONS ###############################################################
 
+# OLD function to import the ipd trips data file
+##filename: name to import
+OLD_import_ipd_trips <- function(){
+  fullpath<-paste(PATH_FILENAME, FILENAME_IPD, sep="")
+  ipd_trips<-read.table(file=fullpath, head=TRUE, sep=";", fill=TRUE)
+  clean_ipd_trips <- ipd_trips[, c("MES", "PUERTO", "ESTRATO_RIM" ,"NUM_MAREAS")]
+  return (clean_ipd_trips)
+}
+
 #function to import the ipd trips data file
 ##filename: name to import
 import_ipd_trips <- function(){
   fullpath<-paste(PATH_FILENAME, FILENAME_IPD, sep="")
   ipd_trips<-read.table(file=fullpath, head=TRUE, sep=";", fill=TRUE)
-  clean_ipd_trips <- ipd_trips[, c("MES", "PUERTO", "ESTRATO_RIM" ,"NUM_MAREAS")]
+  clean_ipd_trips <- ipd_trips[, c("Mes", "Puerto", "Metier" ,"Nº.Mareas")]
   return (clean_ipd_trips)
 }
 
