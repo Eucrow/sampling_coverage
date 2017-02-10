@@ -32,28 +32,26 @@ library(sapmuebase) # and load the library
 
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/octubre/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/diciembre/"
 
-FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTSIRENO_102016.TXT"
-FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALSIRENO_102016.TXT"
-FILENAME_SIRENO_TAL <- "IEOUPMUETALSIRENO_102016.TXT"
+FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
+FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
+FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
-FILENAME_IPD <- "IPD_10.csv"
+FILENAME_IPD <- "IPD_12.csv"
 
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
 
-MONTH <- 10 #empty, a month in number, or "all"
+MONTH <- 12 #empty, a month in number, or "all"
 
 YEAR <- "2016"
-
-# set working directory:
-setwd("F:/misdoc/sap/cobertura muestreos/octubre")
 
 ################################################################################
 
 # ---- CONSTANTS AND GLOBAL VARIABLES ------------------------------------------
 
-PATH <- getwd()
+# set working directory:
+setwd(PATH_FILENAME)
 
 
 BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
