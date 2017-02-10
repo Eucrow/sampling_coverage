@@ -7,8 +7,6 @@
 ####
 #### author: Marco A. Amez Fernandez
 #### email: ieo.marco.a.amez@gmail.com
-#### date of last modification: 23/11/2016
-#### version: 1.5
 ####
 #### files required: prescripciones_2016.csv, file with the IPD trips, file with
 #### the samples saved in SIRENO
@@ -21,6 +19,8 @@
 library(dplyr) #arrange_()
 library(tools) #file_path_sans_ext()
 library(devtools)
+#install.packages("openxlsx", dependencies=TRUE)  
+library(openxlsx)
 
 # ---- install sapmuebase from local
 #install("F:/misdoc/sap/sapmuebase")
@@ -32,28 +32,26 @@ library(sapmuebase) # and load the library
 
 ################################################################################
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/octubre/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/diciembre/"
 
-FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTSIRENO_102016.TXT"
-FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALSIRENO_102016.TXT"
-FILENAME_SIRENO_TAL <- "IEOUPMUETALSIRENO_102016.TXT"
+FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
+FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
+FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
-FILENAME_IPD <- "IPD_10.csv"
+FILENAME_IPD <- "IPD_12.csv"
 
 FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
 
-MONTH <- 10 #empty, a month in number, or "all"
+MONTH <- 12 #empty, a month in number, or "all"
 
 YEAR <- "2016"
-
-# set working directory:
-setwd("F:/misdoc/sap/cobertura muestreos/octubre")
 
 ################################################################################
 
 # ---- CONSTANTS AND GLOBAL VARIABLES ------------------------------------------
 
-PATH <- getwd()
+# set working directory:
+setwd(PATH_FILENAME)
 
 
 BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
@@ -244,9 +242,11 @@ exportCoverageToExcel <- function(df){
   
   # Clean and prepare sireno trip dataframe
   catches_to_clean <- catches
-  catches_to_clean$MES <- strptime(catches_to_clean$FECHA, "%d-%m-%y")
-  catches_to_clean$MES <- format(catches_to_clean$MES, "%m")
-  catches_to_clean$MES <- as.integer(catches_to_clean$MES)
+  # catches_to_clean$MES <- strptime(catches_to_clean$FECHA, "%d-%m-%y")
+  # catches_to_clean$MES <- format(catches_to_clean$MES, "%m")
+  # catches_to_clean$MES <- as.integer(catches_to_clean$MES)
+  catches_to_clean$MES <- as.POSIXlt(catches_to_clean$FECHA, format="%d-%m-%Y")$mon
+  catches_to_clean$MES <- as.integer(catches_to_clean$MES)+1
   catches_to_clean <- catches_to_clean[catches_to_clean$MES==MONTH,]
   catches_to_clean <- catches_to_clean[, c(BASE_FIELDS)]
   catches_to_clean <- unique(catches_to_clean)
@@ -343,6 +343,8 @@ exportCoverageToExcel <- function(df){
 # #### COMPARE NUM_MAREAS ######################################################
   
 # Compare SIRENO vs IPD vs Prescriptions
+    
+  # TODO: usar Reduce!!!!!!!!
   sireno_ipd <- merge(x = sireno_trips, y = ipd_trips, by = c("PUERTO", "ESTRATO_RIM", "MES"), all.x = TRUE, all.y = TRUE)
   sireno_ipd <- arrange(sireno_ipd, MES, PUERTO, ESTRATO_RIM)
   
@@ -355,14 +357,9 @@ exportCoverageToExcel <- function(df){
 #export to csv
   # filename <- paste("cobertura_muestreos_IPD_", MONTH, ".csv", sep="")
   # write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
-  
 
-#install.packages("openxlsx", dependencies=TRUE)  
-library(openxlsx)
-## openxlsx
-
-
-exportCoverageToExcel(sireno_ipd_presc)
+#export to excel
+  exportCoverageToExcel(sireno_ipd_presc)
 
 
   
