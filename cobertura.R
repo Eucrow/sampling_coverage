@@ -7,8 +7,6 @@
 ####
 #### author: Marco A. Amez Fernandez
 #### email: ieo.marco.a.amez@gmail.com
-#### date of last modification: 23/11/2016
-#### version: 1.5
 ####
 #### files required: prescripciones_2016.csv, file with the IPD trips, file with
 #### the samples saved in SIRENO
@@ -21,6 +19,8 @@
 library(dplyr) #arrange_()
 library(tools) #file_path_sans_ext()
 library(devtools)
+#install.packages("openxlsx", dependencies=TRUE)  
+library(openxlsx)
 
 # ---- install sapmuebase from local
 #install("F:/misdoc/sap/sapmuebase")
@@ -244,9 +244,11 @@ exportCoverageToExcel <- function(df){
   
   # Clean and prepare sireno trip dataframe
   catches_to_clean <- catches
-  catches_to_clean$MES <- strptime(catches_to_clean$FECHA, "%d-%m-%y")
-  catches_to_clean$MES <- format(catches_to_clean$MES, "%m")
-  catches_to_clean$MES <- as.integer(catches_to_clean$MES)
+  # catches_to_clean$MES <- strptime(catches_to_clean$FECHA, "%d-%m-%y")
+  # catches_to_clean$MES <- format(catches_to_clean$MES, "%m")
+  # catches_to_clean$MES <- as.integer(catches_to_clean$MES)
+  catches_to_clean$MES <- as.POSIXlt(catches_to_clean$FECHA, format="%d-%m-%Y")$mon
+  catches_to_clean$MES <- as.integer(catches_to_clean$MES)+1
   catches_to_clean <- catches_to_clean[catches_to_clean$MES==MONTH,]
   catches_to_clean <- catches_to_clean[, c(BASE_FIELDS)]
   catches_to_clean <- unique(catches_to_clean)
@@ -343,6 +345,8 @@ exportCoverageToExcel <- function(df){
 # #### COMPARE NUM_MAREAS ######################################################
   
 # Compare SIRENO vs IPD vs Prescriptions
+    
+  # TODO: usar Reduce!!!!!!!!
   sireno_ipd <- merge(x = sireno_trips, y = ipd_trips, by = c("PUERTO", "ESTRATO_RIM", "MES"), all.x = TRUE, all.y = TRUE)
   sireno_ipd <- arrange(sireno_ipd, MES, PUERTO, ESTRATO_RIM)
   
@@ -355,14 +359,9 @@ exportCoverageToExcel <- function(df){
 #export to csv
   # filename <- paste("cobertura_muestreos_IPD_", MONTH, ".csv", sep="")
   # write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
-  
 
-#install.packages("openxlsx", dependencies=TRUE)  
-library(openxlsx)
-## openxlsx
-
-
-exportCoverageToExcel(sireno_ipd_presc)
+#export to excel
+  exportCoverageToExcel(sireno_ipd_presc)
 
 
   
