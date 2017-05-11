@@ -2,17 +2,58 @@
 #### Script to compare the number of trips sampled by IPD and compare to the
 #### samples keyed in SIRENO and required in the prescriptions.
 #### 
-#### 
-#### Return a csv file
+#### The script return a formatted table in xls.
 ####
 #### author: Marco A. Amez Fernandez
 #### email: ieo.marco.a.amez@gmail.com
 ####
-#### files required: prescripciones_2016.csv, file with the IPD trips, file with
+#### files required: prescripciones_2017.csv, file with the IPD trips, file with
 #### the samples saved in SIRENO
+#### ---------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# #### INSTRUCTIONS ############################################################
+# ------------------------------------------------------------------------------
+
+# To use this scritp:
+# - Change variables in "YOU HAVE ONLY TO CHANGE THIS VARIABLES" section of this
+# script.
+# - Make sure that this required files are in PATH_FILENAME path:
+#     * file with the IPD trips
+#     * prescripciones_2017.csv (with this format: csv separated by ";", without quotes)
+#     * report files tallas_x_up from SIRENO
+# - Run all the script
+# - A formatted xlsx file is obtained in PATH_FILENAME path
 
 
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# YOU HAVE ONLY TO CHANGE THIS VARIABLES 
+# All the files must be located in this PATH_FILENAME:
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/2017/2017-02/"
+
+# FILES FROM SIRENO
+FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
+FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
+FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
+
+# FILE FROM IPD: attention with the format: csv separated by ";", without quotes
+FILENAME_IPD <- "IPD-2017-02.csv"
+
+# FILE WITH ANNUAL PRESCRIPTIONS
+FILENAME_PRESCRIPTIONS <- "prescripciones_2017.csv"
+
+MONTH <- 2 #a month in number
+
+YEAR <- "2017"
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
 # #### CONFIG ##################################################################
+# ------------------------------------------------------------------------------
 
 # ---- PACKAGES ----------------------------------------------------------------
 
@@ -30,23 +71,6 @@ library(openxlsx)
 
 library(sapmuebase) # and load the library
 
-################################################################################
-# YOU HAVE ONLY TO CHANGE THIS VARIABLES:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/diciembre/"
-
-FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
-FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
-FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
-
-FILENAME_IPD <- "IPD_12.csv"
-
-FILENAME_PRESCRIPTIONS <- "prescripciones_2016.csv"
-
-MONTH <- 12 #empty, a month in number, or "all"
-
-YEAR <- "2016"
-
-################################################################################
 
 # ---- CONSTANTS AND GLOBAL VARIABLES ------------------------------------------
 
@@ -59,7 +83,10 @@ BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES
 
 month_as_character <- sprintf("%02d", MONTH)
 
+
+# ------------------------------------------------------------------------------
 # #### FUNCTIONS ###############################################################
+# ------------------------------------------------------------------------------
 
 # OLD function to import the ipd trips data file
 ##filename: name to import
@@ -197,21 +224,50 @@ exportCoverageToExcel <- function(df){
   saveWorkbook(wb, final_filename, overwrite = TRUE)
 }
 
+
+# ------------------------------------------------------------------------------
 # #### IMPORT DATA #############################################################
+# ------------------------------------------------------------------------------
 
 # import tallas_x_up and isolate catches dataframe
   muestreos_up <- importMuestreosUP(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = MONTH)
   catches <- muestreos_up$catches  
+  catches_in_lengths <- muestreos_up$catches_in_lengths
+  lengths <- muestreos_up$lengths
+  
+  muestreos_up1 <- muestreos_up
+  muestreos_up1$catches[1:10,"newcolumn"] <- "jeolu1"
+  muestreos_up1$catches_in_lengths[1:10,"newcolumn"] <- "jeolu1"
+  muestreos_up1$lengths[1:10,"newcolumn"] <- "jeolu1"
+  
+  muestreos_up2 <- muestreos_up
+  muestreos_up2$catches[11:20,"newcolumn"] <- "jeolu2"
+  muestreos_up2$catches_in_lengths[11:20,"newcolumn"] <- "jeolu2"
+  muestreos_up2$lengths[11:20,"newcolumn"] <- "jeolu2"
+  
+  variables_to_merge <- colnames(muestreos_up$catches)
 
+  total_m <- mapply(function(x,y){
+    merge(x, y, by = variables_to_merge)
+  },
+  muestreos_up1,
+  muestreos_up2)
+  
+  catches_total_m <- total_m$catches
+  catches_in_lenghts_total_m <- total_m$catches_in_lengths
+  lengths_total_m <- total_m$lengths
+  
 # import IPD's trip data
   ipd_trips <- get_ipd_trips()
   
 # import prescriptions file
-  prescriptions <- ImportCsvSAPMUE(FILENAME_PRESCRIPTIONS)
+  prescriptions <- importCsvSAPMUE(FILENAME_PRESCRIPTIONS)
 
-
+  
+# ------------------------------------------------------------------------------
 # #### CLEAN AND PREPARE DATA ##################################################
-
+# ------------------------------------------------------------------------------
+  
   # Clean and prepare IPD's trip dataframe
   ipd_trips <- subset(ipd_trips, NUM_MAREAS > 0)
   names(ipd_trips)[names(ipd_trips)== "NUM_MAREAS"] <- "NUM_MAREAS_IPD"
@@ -242,9 +298,6 @@ exportCoverageToExcel <- function(df){
   
   # Clean and prepare sireno trip dataframe
   catches_to_clean <- catches
-  # catches_to_clean$MES <- strptime(catches_to_clean$FECHA, "%d-%m-%y")
-  # catches_to_clean$MES <- format(catches_to_clean$MES, "%m")
-  # catches_to_clean$MES <- as.integer(catches_to_clean$MES)
   catches_to_clean$MES <- as.POSIXlt(catches_to_clean$FECHA, format="%d-%m-%Y")$mon
   catches_to_clean$MES <- as.integer(catches_to_clean$MES)+1
   catches_to_clean <- catches_to_clean[catches_to_clean$MES==MONTH,]
@@ -332,16 +385,13 @@ exportCoverageToExcel <- function(df){
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="MERLUCEROS_AC"] <- "MERLUCER_AC"
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="NASAPULPO_CN"] <- "NASAPULP_CN"
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="LINEA_CABALLA"] <- "LIN_CABALLA"
-    #ES NECESARIO VOLVER A AGRUPAR:¿¿¿??? yo creo que no
-    
 
-  
-  
-# #### REMOVE USELESS VARIABLES ################################################
-  rm(catches_to_clean, catches_clean, aggregated_catches)
-  
+    
+# ------------------------------------------------------------------------------
 # #### COMPARE NUM_MAREAS ######################################################
-  
+# ------------------------------------------------------------------------------
+
+
 # Compare SIRENO vs IPD vs Prescriptions
     
   # TODO: usar Reduce!!!!!!!!
