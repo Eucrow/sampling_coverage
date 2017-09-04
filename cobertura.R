@@ -19,7 +19,10 @@
 # - Change variables in "YOU HAVE ONLY TO CHANGE THIS VARIABLES" section of this
 # script.
 # - Make sure that this required files are in PATH_FILENAME path:
-#     * file with the IPD trips
+#     * file with the IPD trips. IPD send a .xlsx file wich have to be exported to
+# csv in excell. Sometimes the first line of the file contains only empty fields
+# and the second file contains the header fields. In that case, the first file 
+# must be deleted before continue with this script.
 #     * prescripciones_2017.csv (with this format: csv separated by ";", without quotes)
 #     * report files tallas_x_up from SIRENO
 # - Run all the script
@@ -30,7 +33,7 @@
 # ------------------------------------------------------------------------------
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES 
 # All the files must be located in this PATH_FILENAME:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/2017/2017-02/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/2017/2017-06/"
 
 # FILES FROM SIRENO
 FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
@@ -38,12 +41,12 @@ FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
 FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
 # FILE FROM IPD: attention with the format: csv separated by ";", without quotes
-FILENAME_IPD <- "IPD-2017-02.csv"
+FILENAME_IPD <- "IPD-2017-06.csv"
 
 # FILE WITH ANNUAL PRESCRIPTIONS
 FILENAME_PRESCRIPTIONS <- "prescripciones_2017.csv"
 
-MONTH <- 2 #a month in number
+MONTH <- 6 #a month in number
 
 YEAR <- "2017"
 
@@ -78,7 +81,7 @@ library(sapmuebase) # and load the library
 setwd(PATH_FILENAME)
 
 
-BASE_FIELDS <- c("FECHA", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
+BASE_FIELDS <- c("FECHA_MUE", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
 
 
 month_as_character <- sprintf("%02d", MONTH)
@@ -230,32 +233,10 @@ exportCoverageToExcel <- function(df){
 # ------------------------------------------------------------------------------
 
 # import tallas_x_up and isolate catches dataframe
-  muestreos_up <- importMuestreosUP(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = MONTH)
+  muestreos_up <- importRIMFiles(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = MONTH)
   catches <- muestreos_up$catches  
   catches_in_lengths <- muestreos_up$catches_in_lengths
   lengths <- muestreos_up$lengths
-  
-  muestreos_up1 <- muestreos_up
-  muestreos_up1$catches[1:10,"newcolumn"] <- "jeolu1"
-  muestreos_up1$catches_in_lengths[1:10,"newcolumn"] <- "jeolu1"
-  muestreos_up1$lengths[1:10,"newcolumn"] <- "jeolu1"
-  
-  muestreos_up2 <- muestreos_up
-  muestreos_up2$catches[11:20,"newcolumn"] <- "jeolu2"
-  muestreos_up2$catches_in_lengths[11:20,"newcolumn"] <- "jeolu2"
-  muestreos_up2$lengths[11:20,"newcolumn"] <- "jeolu2"
-  
-  variables_to_merge <- colnames(muestreos_up$catches)
-
-  total_m <- mapply(function(x,y){
-    merge(x, y, by = variables_to_merge)
-  },
-  muestreos_up1,
-  muestreos_up2)
-  
-  catches_total_m <- total_m$catches
-  catches_in_lenghts_total_m <- total_m$catches_in_lengths
-  lengths_total_m <- total_m$lengths
   
 # import IPD's trip data
   ipd_trips <- get_ipd_trips()
@@ -298,7 +279,7 @@ exportCoverageToExcel <- function(df){
   
   # Clean and prepare sireno trip dataframe
   catches_to_clean <- catches
-  catches_to_clean$MES <- as.POSIXlt(catches_to_clean$FECHA, format="%d-%m-%Y")$mon
+  catches_to_clean$MES <- as.POSIXlt(catches_to_clean$FECHA_MUE, format="%d-%m-%Y")$mon
   catches_to_clean$MES <- as.integer(catches_to_clean$MES)+1
   catches_to_clean <- catches_to_clean[catches_to_clean$MES==MONTH,]
   catches_to_clean <- catches_to_clean[, c(BASE_FIELDS)]
