@@ -11,8 +11,6 @@
 #### the samples saved in SIRENO
 #### ---------------------------------------------------------------------------
 
-# PRUEBA FEATURE 
-# añadimos version
 
 # ------------------------------------------------------------------------------
 # #### INSTRUCTIONS ############################################################
@@ -23,8 +21,10 @@
 # script.
 # - Make sure that this required files are in PATH_FILENAME path:
 #     * file with the IPD trips. IPD send a .xlsx file wich have to be exported to
-# csv in excell. Sometimes the first line of the file contains only empty fields
-# and the second file contains the header fields. In that case, the first file 
+# csv in excel. The name used in this script is "IPD-year-month.csv", but it is
+# possible change it in the variable FILENAME_IPD in the "YOU HAVE ONLY TO CHANGE
+# THIS VARIABLES" section. Sometimes the first line of the file contains only 
+# empty fields and the second file contains the header fields. In that case, the first file 
 # must be deleted before continue with this script.
 #     * prescripciones_2017.csv (with this format: csv separated by ";", without quotes)
 #     * report files tallas_x_up from SIRENO
@@ -36,7 +36,7 @@
 # ------------------------------------------------------------------------------
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES 
 # All the files must be located in this PATH_FILENAME:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/2017/2017-06/"
+PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/2017/2017-12/"
 
 # FILES FROM SIRENO
 FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
@@ -44,12 +44,12 @@ FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
 FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
 # FILE FROM IPD: attention with the format: csv separated by ";", without quotes
-FILENAME_IPD <- "IPD-2017-06.csv"
+FILENAME_IPD <- "IPD-2017-12.csv"
 
 # FILE WITH ANNUAL PRESCRIPTIONS
 FILENAME_PRESCRIPTIONS <- "prescripciones_2017.csv"
 
-MONTH <- 6 #a month in number
+MONTH <- 12 #a month in number
 
 YEAR <- "2017"
 
@@ -236,10 +236,11 @@ exportCoverageToExcel <- function(df){
 # ------------------------------------------------------------------------------
 
 # import tallas_x_up and isolate catches dataframe
-  muestreos_up <- importRIMFiles(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = MONTH)
-  catches <- muestreos_up$catches  
-  catches_in_lengths <- muestreos_up$catches_in_lengths
-  lengths <- muestreos_up$lengths
+  # muestreos_up <- importRIMFiles(FILENAME_SIRENO_DES_TOT, FILENAME_SIRENO_DES_TAL,FILENAME_SIRENO_TAL, by_month = MONTH)
+  # catches <- muestreos_up$catches  
+  # catches_in_lengths <- muestreos_up$catches_in_lengths
+  # lengths <- muestreos_up$lengths
+  catches <- importRIMCatches(FILENAME_SIRENO_DES_TOT)
   
 # import IPD's trip data
   ipd_trips <- get_ipd_trips()
