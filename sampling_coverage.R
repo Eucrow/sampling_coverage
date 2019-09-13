@@ -25,7 +25,7 @@
 
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES ---------------------------------------
 # All the files must be located in this PATH_FILES (the path is relative):
-PATH_DATA_FILES <- "/data/2019/2019_05/"
+PATH_DATA_FILES <- "/data/2019/2019_06/"
 
 # FILES FROM SIRENO
 FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
@@ -33,12 +33,12 @@ FILENAME_SIRENO_DES_TAL <- "IEOUPMUEDESTALMARCO.TXT"
 FILENAME_SIRENO_TAL <- "IEOUPMUETALMARCO.TXT"
 
 # FILE FROM IPD
-FILENAME_IPD <- "inf_cobertura_mayo.xls"
+FILENAME_IPD <- "inf_cobertura_junio.xls"
 
 # FILE WITH ANNUAL PRESCRIPTIONS
 FILENAME_PRESCRIPTIONS <- "prescripciones_2019_anual.csv"
 
-MONTH <- 5 #a month in number
+MONTH <- 6 #a month in number
 
 YEAR <- "2019"
 
@@ -64,7 +64,8 @@ source('sampling_coverage_functions.R')
 
 
 # CONSTANTS AND GLOBAL VARIABLES -----------------------------------------------
-BASE_FIELDS <- c("FECHA_MUE", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
+BASE_FIELDS <- c("FECHA_MUE", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", 
+                 "MES")  ###list with the common fields used in tables
 month_as_character <- sprintf("%02d", MONTH)
 
 
