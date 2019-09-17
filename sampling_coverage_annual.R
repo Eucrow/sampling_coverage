@@ -1,52 +1,43 @@
 # Coverage certification MT2 IPD samples
-# Script to compare the number of trips sampled by IPD with the
-# samples saved in SIRENO and required in the prescriptions.
+# Script to compare the number of trips sampled by IPD with the samples saved in
+# SIRENO and required in the prescriptions.
 # 
 # The script return a formatted table in xls.
 #
 # author: Marco A. Amez Fernandez
 # email: ieo.marco.a.amez@gmail.com
 #
-# files required: prescripciones_2017.csv, file with the IPD trips, file with
-# the samples saved in SIRENO
-# ··············································································
+# files required: prescripciones_2018.csv and file with the samples saved in
+# SIRENO
 
 
-# ··············································································
 # INSTRUCTIONS -----------------------------------------------------------------
-# ··············································································
-
 # To use this scritp:
 # - Change variables in "YOU HAVE ONLY TO CHANGE THIS VARIABLES" section of this
 # script.
 # - Make sure that this required files are in PATH_FILENAME path:
-#     * prescripciones_2017.csv (with this format: csv separated by ";", without quotes)
+#     * prescripciones_2018.csv (with this format: csv separated by ";", without quotes)
 #     * report files tallas_x_up from SIRENO
 # - Run all the script
 # - A formatted xlsx file is obtained in PATH_FILENAME path
 
 
-# ··············································································
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES ---------------------------------------
-# ··············································································
 # All the files must be located in this PATH_FILENAME:
-PATH_FILENAME <- "F:/misdoc/sap/cobertura muestreos/2017/anual/"
+PATH_FILENAME <- "F:/misdoc/sap/sampling_coverage/data/2019/2019_fist_semester"
 
 # FILES FROM SIRENO
-FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTSIRENO_2017_2018_04_18.TXT"
+FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTSIRENO_2018_first_semester.TXT"
 
 # FILE WITH ANNUAL PRESCRIPTIONS
-FILENAME_PRESCRIPTIONS <- "prescripciones_2017.csv"
+FILENAME_PRESCRIPTIONS <- "prescripciones_2019_anual.csv"
 
 MONTH <- all #empty, a month in number, or "all"
 
-YEAR <- "2017"
+YEAR <- "2018"
 
 
-# ··············································································
 # PACKAGES ---------------------------------------------------------------------
-# ··············································································
-
 library(dplyr) #arrange_()
 library(tools) #file_path_sans_ext()
 library(devtools)
@@ -61,19 +52,16 @@ library(openxlsx)
 
 library(sapmuebase) # and load the library
 
-# ··············································································
+
 # CONSTANTS AND GLOBAL VARIABLES -----------------------------------------------
-# ··············································································
 # set working directory:
 setwd(PATH_FILENAME)
 
 
 BASE_FIELDS <- c("FECHA_MUE", "PUERTO", "BARCO", "ESTRATO_RIM", "COD_TIPO_MUE", "MES")  ###list with the common fields used in tables
 
-# ··············································································
-# FUNCTIONS --------------------------------------------------------------------
-# ··············································································
 
+# FUNCTIONS --------------------------------------------------------------------
 # Export the coverage dataframe obtained in this script to excel
 # df: dataframe to export. In this case is contained in sireno_ipd_pres variable
 exportCoverageToExcel <- function(df){
@@ -164,21 +152,15 @@ exportCoverageToExcel <- function(df){
 }
 
 
-# ··············································································
 # IMPORT DATA ------------------------------------------------------------------
-# ··············································································
-
 # import catches from SIRENO files
   catches <- importRIMCatches(FILENAME_SIRENO_DES_TOT)
 
 # import prescriptions file
   prescriptions <- importCsvSAPMUE(FILENAME_PRESCRIPTIONS)
 
-  
-# ··············································································
-# CLEAN AND PREPARE DATA -------------------------------------------------------
-# ··············································································
 
+# CLEAN AND PREPARE DATA -------------------------------------------------------
   # Clean and prepare sireno trip dataframe
   catches_to_clean <- catches
   # select only IEO samples
@@ -246,12 +228,8 @@ exportCoverageToExcel <- function(df){
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="NASAPULPO_CN"] <- "NASAPULP_CN"
     levels(prescriptions_trips$ESTRATO_RIM)[levels(prescriptions_trips$ESTRATO_RIM)=="LINEA_CABALLA"] <- "LIN_CABALLA"
 
-    
-# ··············································································
+
 # COMPARE NUM_MAREAS -----------------------------------------------------------
-# ··············································································
-
-
 # Compare SIRENO vs IPD vs Prescriptions
   
   sireno_ipd_presc <- merge(x = sireno_trips, y = prescriptions_trips, by.x = c("PUERTO", "ESTRATO_RIM"), all.x = TRUE, all.y = TRUE)
@@ -259,7 +237,6 @@ exportCoverageToExcel <- function(df){
   
   sireno_ipd_presc[is.na(sireno_ipd_presc)] <- 0
 
-  
 #export to csv
   # filename <- paste("cobertura_muestreos_IPD_", MONTH, ".csv", sep="")
   # write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
