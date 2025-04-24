@@ -4,14 +4,14 @@
 #
 # The script create an xls file as result.
 #
-# Author: Marco A. Amez Fernandez
+# Author: Marco A. ámez Fernandez
 # Email: ieo.marco.a.amez@gmail.com
 #
-# files required: prescripciones_2021_anual.csv, file with the IPD trips, file with
+# files required: prescripciones_2021_anual_ansi.csv, file with the IPD trips, file with
 # the samples saved in SIRENO
 
 # INSTRUCTIONS ----
-# To use this scritp:
+# To use this script:
 # - Change variables in "YOU HAVE ONLY TO CHANGE THIS VARIABLES" section of this
 # script.
 # - Make sure that this required files are in PATH_FILES path:
@@ -42,22 +42,22 @@ library(sapmuebase) # and load the library
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES ---------------------------------------
 # All the files must be located in this PATH_FILES (relative to the path where
 # this file is stored):
-PATH_DATA_FILES <- "/data/2022/2022_10/"
+PATH_DATA_FILES <- "/data/2025/2025_01/"
 
 # FILES FROM SIRENO
 FILENAME_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
 
 # FILE FROM IPD (excel)
-FILENAME_IPD <- "Informes_cobertura_10_2022_lote 1.xlsx"
+FILENAME_IPD <- "Informes_cobertura_01_2025_lote 1.xlsx"
 
 # FILE WITH ANNUAL PRESCRIPTIONS
-FILENAME_PRESCRIPTIONS <- "prescripciones_2021_anual.csv"
+FILENAME_PRESCRIPTIONS <- "prescripciones_2021_anual_ansi.csv"
 
 # MONTH in numeric format
-MONTH <- 10
+MONTH <- 1
 
 # YEAR with four digits
-YEAR <- "2022"
+YEAR <- "2025"
 
 
 # FUNCTIONS --------------------------------------------------------------------

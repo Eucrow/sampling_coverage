@@ -43,8 +43,8 @@ exportMonthlyCoverageToExcel <- function(df){
   index_num_port_day_ipd <- toupper(letters[which(colnames(df)=="NUM_PUERTO_DIA_IPD")])
   index_num_port_day_presc <- toupper(letters[which(colnames(df)=="NUM_PUERTO_DIA_PRESCR")])
   
-  # ATTENTION: the formula must have the english format:
-  # name of function in english, parameters separation with comma
+  # ATTENTION: the formula must have the English format:
+  # name of function in English, parameters separation with comma
   SIRENOvsIPD <- paste0("IF(", index_num_port_day_sireno, first_row:last_row, "=", index_num_port_day_ipd, first_row:last_row, ",\"CORRECTO\",\"FALSO\")")
   
   SIRENOvsPRESCRIPCIONES <- paste0("IF(", index_num_port_day_sireno, first_row:last_row, "=", index_num_port_day_presc, first_row:last_row, ",\"OK\",", "IF(",index_num_port_day_sireno, first_row:last_row ,"<",index_num_port_day_presc, first_row:last_row,",\"DEFICIT\", IF(",index_num_port_day_sireno, first_row:last_row, ">",index_num_port_day_presc, first_row:last_row," ,\"SUPERAVIT\",)))" )

@@ -4,10 +4,10 @@
 # 
 # The script create an xls file as result.
 #
-# Author: Marco A. Amez Fernandez
+# Author: Marco A. Ámez Fernandez
 # Email: ieo.marco.a.amez@gmail.com
 # 
-# Files required: prescripciones_2021_anual.csv and file with the samples saved
+# Files required: prescripciones_2021_anual_ansi.csv and file with the samples saved
 # in SIRENO from 
 
 
@@ -24,19 +24,19 @@
 
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES ---------------------------------------
 # All the files must be located in this PATH_FILENAME:
-PATH_DATA_FILES <- "/data/2022/2022_annual_b/"
+PATH_DATA_FILES <- "/data/2023/2023_annual/"
 
 # FILES FROM SIRENO
-FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTSIRENO_RIM_2022_090323.TXT"
+FILENAME_SIRENO_DES_TOT <- "IEOUPMUEDESTOTSIRENO_RIM_ICES_2023.TXT"
 
 # FILE WITH ANNUAL PRESCRIPTIONS
-FILENAME_PRESCRIPTIONS <- "prescripciones_2021_anual.csv"
+FILENAME_PRESCRIPTIONS <- "prescripciones_2021_anual_ansi.csv"
 
 MONTH <- all #empty, a month in number, or "all"
 
-SUFFIX_FILENAME <- "annual_b"
+SUFFIX_FILENAME <- "annual_01_11"
 
-YEAR <- "2022"
+YEAR <- "2023"
 
 
 # PACKAGES ---------------------------------------------------------------------
@@ -160,6 +160,8 @@ source('sampling_coverage_functions.R')
   # filename <- paste("cobertura_muestreos_IPD_", MONTH, ".csv", sep="")
   # write.csv(sireno_ipd_presc, file = filename, quote = FALSE, row.names = FALSE, na="0")
 
+#TODO: the file is saved in c:\...\sampling_coverage\ folder, change it to save
+  # in its property folder
 #export to excel
   exportAnnualCoverageToExcel(sireno_ipd_presc)
 
