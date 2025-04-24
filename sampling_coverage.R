@@ -42,19 +42,19 @@ library(sapmuebase) # and load the library
 # YOU HAVE ONLY TO CHANGE THIS VARIABLES ---------------------------------------
 # All the files must be located in this PATH_FILES (relative to the path where
 # this file is stored):
-PATH_DATA_FILES <- "/data/2025/2025_01/"
+PATH_DATA_FILES <- "/data/2025/2025_02/"
 
 # FILES FROM SIRENO
 FILENAME_DES_TOT <- "IEOUPMUEDESTOTMARCO.TXT"
 
 # FILE FROM IPD (excel)
-FILENAME_IPD <- "Informes_cobertura_01_2025_lote 1.xlsx"
+FILENAME_IPD <- "Informes_cobertura_02_2025_lote 1.xlsx"
 
 # FILE WITH ANNUAL PRESCRIPTIONS
 FILENAME_PRESCRIPTIONS <- "prescripciones_2021_anual_ansi.csv"
 
 # MONTH in numeric format
-MONTH <- 1
+MONTH <- 2
 
 # YEAR with four digits
 YEAR <- "2025"
